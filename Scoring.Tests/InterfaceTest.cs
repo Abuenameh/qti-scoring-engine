@@ -35,7 +35,7 @@ namespace ScoringEngine.Tests
             var scoredAssessmentResults = qtiScoringEngine.ProcessResponses(new ResponseProcessingContext
             {
                 AssessmentItems = assessmentItems,
-                AssessmentmentResults = assessmentResults,
+                AssessmentResults = assessmentResults,
                 Logger = logger
             });
 
@@ -43,7 +43,7 @@ namespace ScoringEngine.Tests
             var result2 = scoredAssessmentResults[0].GetScoreForItem(assessmentItems[1].Root.Identifier(), "SCORE");
             var result3 = scoredAssessmentResults[0].GetScoreForItem(assessmentItems[2].Root.Identifier(), "SCORE");
             var result4 = scoredAssessmentResults[0].GetScoreForItem(assessmentItems[3].Root.Identifier(), "SCORE");
-           
+
             Assert.Equal("1", result1);
             Assert.Equal("1", result2);
             Assert.Equal("1", result3);
@@ -74,7 +74,7 @@ namespace ScoringEngine.Tests
             var scoredAssessmentResults = qtiScoringEngine.ProcessResponses(new ResponseProcessingContext
             {
                 AssessmentItems = assessmentItems,
-                AssessmentmentResults = assessmentResults,
+                AssessmentResults = assessmentResults,
                 Logger = logger
             });
 
@@ -112,7 +112,7 @@ namespace ScoringEngine.Tests
             var scoredAssessmentResultWithoutScoredItems = qtiScoringEngine.ProcessOutcomes(new OutcomeProcessingContext
             {
                 AssessmentTest = assessmentTest,
-                AssessmentmentResults = assessmentResults,
+                AssessmentResults = assessmentResults,
                 Logger = logger
             });
 

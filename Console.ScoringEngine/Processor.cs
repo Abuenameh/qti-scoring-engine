@@ -45,7 +45,7 @@ namespace Console.Scoring
             {
                 AssessmentItems = manifest.Items.Select(itemRef => GetDocument(Path.Combine(packageFolder.FullName, itemRef.Href))).ToList(),
                 AssessmentTest = GetDocument(Path.Combine(packageFolder.FullName, manifest.Test.Href)),
-                AssessmentmentResults = results,
+                AssessmentResults = results,
                 Logger = _logger,
                 ProcessParallel = false
             });

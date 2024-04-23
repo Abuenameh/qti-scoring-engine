@@ -140,7 +140,7 @@ The provided list of assessmentResults is updated with scoring info. The functio
 
 The provided context contains:
 
-- `List<XDocument> AssessmentmentResults `: list of assessmentResults. For responseProcessing ItemResult should at least contain the candidateResponse.
+- `List<XDocument> AssessmentResults `: list of assessmentResults. For responseProcessing ItemResult should at least contain the candidateResponse.
 - `ILogger Logger` (optional): logs the processing steps as informational and log warnings and errors.
 
 For responseProcessing the context extends the following properties:
@@ -170,7 +170,7 @@ var scoredAssessmentResults = qtiScoringEngine.ProcessResponsesAndOutcomes(new S
 {
     AssessmentItems = assessmentItemXDocs,
     AssessmentTest = assessmentTestXDoc,
-    AssessmentmentResults = assessmentResultXDocs,
+    AssessmentResults = assessmentResultXDocs,
     Logger = _logger
 });
 ```

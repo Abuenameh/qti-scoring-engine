@@ -40,18 +40,18 @@ namespace Citolab.QTI.ScoringEngine
             if (ctx.ProcessParallel == true)
             {
                 var concurrentAssessmentResultList = new ConcurrentBag<XDocument>();
-                Parallel.For(0, ctx.AssessmentmentResults.Count,
+                Parallel.For(0, ctx.AssessmentResults.Count,
                   index =>
                   {
-                      var assessmentResultDoc = ctx.AssessmentmentResults[index];
+                      var assessmentResultDoc = ctx.AssessmentResults[index];
                       var processedAssessmentResult = AssessmentResultOutcomeProcessing(assessmentResultDoc, assessmentTest, ctx.Logger);
                       concurrentAssessmentResultList.Add(processedAssessmentResult);
                   });
-                ctx.AssessmentmentResults = concurrentAssessmentResultList.ToList();
+                ctx.AssessmentResults = concurrentAssessmentResultList.ToList();
             }
             else
             {
-                ctx.AssessmentmentResults = ctx.AssessmentmentResults.Select(assessmentResultDoc =>
+                ctx.AssessmentResults = ctx.AssessmentResults.Select(assessmentResultDoc =>
                 {
                     var processedAssessmentResult = AssessmentResultOutcomeProcessing(assessmentResultDoc, assessmentTest, ctx.Logger);
                     return processedAssessmentResult;
@@ -62,7 +62,7 @@ namespace Citolab.QTI.ScoringEngine
 
 
             //}
-            return ctx.AssessmentmentResults;
+            return ctx.AssessmentResults;
         }
 
         public List<XDocument> ProcessResponses(IResponseProcessingContext ctx, ResponseProcessingScoringsOptions options = null)
@@ -89,31 +89,31 @@ namespace Citolab.QTI.ScoringEngine
             if (ctx.ProcessParallel == true)
             {
                 var concurrentAssessmentResultList = new ConcurrentBag<XDocument>();
-                Parallel.For(0, ctx.AssessmentmentResults.Count,
+                Parallel.For(0, ctx.AssessmentResults.Count,
                   index =>
                   {
-                      var assessmentResultDoc = ctx.AssessmentmentResults[index];
+                      var assessmentResultDoc = ctx.AssessmentResults[index];
                       var assessmentResult = (XDocument)AssessmentResultResponseProcessing(assessmentResultDoc, assessmentItems, ctx.Logger, options);
                       concurrentAssessmentResultList.Add(assessmentResult);
                   });
-                ctx.AssessmentmentResults = concurrentAssessmentResultList.ToList();
+                ctx.AssessmentResults = concurrentAssessmentResultList.ToList();
             }
             else
             {
-                ctx.AssessmentmentResults = ctx.AssessmentmentResults
+                ctx.AssessmentResults = ctx.AssessmentResults
               .Select(assessmentResultDoc => (XDocument)AssessmentResultResponseProcessing(assessmentResultDoc, assessmentItems, ctx.Logger, options))
               .ToList();
             }
 
             //}
-            return ctx.AssessmentmentResults;
+            return ctx.AssessmentResults;
         }
 
         public List<XDocument> ProcessResponsesAndOutcomes(IScoringContext ctx, ResponseProcessingScoringsOptions options = null)
         {
             ProcessResponses(ctx, options);
             ProcessOutcomes(ctx);
-            return ctx.AssessmentmentResults;
+            return ctx.AssessmentResults;
         }
 
 
