@@ -174,6 +174,7 @@ namespace Citolab.QTI.ScoringEngine.Model
                     {
                         Identifier = responseVariable.Identifier(),
                         BaseType = responseVariable.GetAttributeValue("baseType").ToBaseType(),
+                        Cardinality = responseVariable.GetAttributeValue("cardinality").ToCardinality(),
                         Value = string.Join("&", values.ToArray()),
                         Values = values
                     };
