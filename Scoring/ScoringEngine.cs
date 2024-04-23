@@ -10,6 +10,7 @@ using Citolab.QTI.ScoringEngine.OutcomeProcessing;
 using Microsoft.Extensions.Logging;
 using Citolab.QTI.ScoringEngine.ResponseProcessing;
 using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
 
 namespace Citolab.QTI.ScoringEngine
 {
@@ -131,6 +132,21 @@ namespace Citolab.QTI.ScoringEngine
                 assessmentResult = ResponseProcessor.Process(assessmentItem, assessmentResult, logger, options);
             }
             return assessmentResult;
+        }
+
+        [UnmanagedCallersOnly]
+        public static unsafe double Score(char* assessmentItem, char* assessmentResults)
+        {
+            var qtiScoringEngine = new ScoringEngine();
+            var scoredAssessmentResult = qtiScoringEngine.ProcessResponses(new ScoringContext
+            {
+                AssessmentItems = [XDocument.Parse(Marshal.PtrToStringUTF8(new IntPtr(assessmentItem)))],
+                AssessmentmentResults = [XDocument.Parse(Marshal.PtrToStringUTF8(new IntPtr(assessmentResults)))],
+            }).FirstOrDefault();
+            var itemResult = scoredAssessmentResult.FindElementsByElementAndAttributeValue("itemResult", "identifier", "item").FirstOrDefault();
+            var outcomeVariable = itemResult?.FindElementsByElementAndAttributeValue("outcomeVariable", "identifier", "SCORE").FirstOrDefault();
+            double score = 0;
+            return Double.TryParse(outcomeVariable?.Value, out score) ? score : -1;
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>netstandard2.1</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<RootNamespace>Citolab.QTI.ScoringEngine</RootNamespace>
 		<ProjectGuid>{2A7091CD-6A49-4B7B-85BB-A140C8B5397C}</ProjectGuid>
 		<PackageId>Citolab.QTI.ScoringEngine</PackageId>
@@ -20,6 +20,11 @@
 		<PackageIcon>citolab.jpeg</PackageIcon>
 		<PackageIconUrl />
 		<Configurations>Release;Debug</Configurations>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<EnableDynamicLoading>true</EnableDynamicLoading>
+		<DnneNativeBinaryName>libScoringEngine</DnneNativeBinaryName>
+		<DnneCompilerCommand>g++</DnneCompilerCommand>
+    <OutputPath>../../build/dotnet</OutputPath>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -32,6 +37,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
+		<PackageReference Include="DNNE" Version="2.*" />
 	</ItemGroup>
 
 	<ItemGroup>
