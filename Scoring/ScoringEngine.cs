@@ -137,28 +137,34 @@ namespace Citolab.QTI.ScoringEngine
         [UnmanagedCallersOnly]
         public static unsafe double Score(char* assessmentItemStr, char* assessmentResultsStr)
         {
-            var assessmentItem = XDocument.Parse(Marshal.PtrToStringUTF8(new IntPtr(assessmentItemStr)));
-            var assessmentResults = XDocument.Parse(Marshal.PtrToStringUTF8(new IntPtr(assessmentResultsStr)));
+            try {
+                var assessmentItem = XDocument.Parse(Marshal.PtrToStringUTF8(new IntPtr(assessmentItemStr)));
+                var assessmentResults = XDocument.Parse(Marshal.PtrToStringUTF8(new IntPtr(assessmentResultsStr)));
 
-            var logger = new NullLogger<ScoringEngine>();
-            var expressionFactory = new ExpressionFactory(null, logger);
-            double maxScore = 1;
-            if (new AssessmentItem(logger, assessmentItem, expressionFactory).OutcomeDeclarations.TryGetValue("MAXSCORE", out OutcomeDeclaration maxScoreOutcome)) {
-              if (!double.TryParse(maxScoreOutcome.DefaultValue.ToString(), out maxScore)) {
-                maxScore = 1;
-              }
+                var logger = new NullLogger<ScoringEngine>();
+                var expressionFactory = new ExpressionFactory(null, logger);
+                double maxScore = 1;
+                if (new AssessmentItem(logger, assessmentItem, expressionFactory).OutcomeDeclarations.TryGetValue("MAXSCORE", out OutcomeDeclaration maxScoreOutcome)) {
+                  if (!double.TryParse(maxScoreOutcome.DefaultValue.ToString(), out maxScore)) {
+                    maxScore = 1;
+                  }
+                }
+
+                var qtiScoringEngine = new ScoringEngine();
+                var scoredAssessmentResult = qtiScoringEngine.ProcessResponses(new ScoringContext
+                {
+                    AssessmentItems = [assessmentItem],
+                    AssessmentResults = [assessmentResults],
+                }).FirstOrDefault();
+                var itemResult = scoredAssessmentResult.FindElementsByElementAndAttributeValue("itemResult", "identifier", "item").FirstOrDefault();
+                var outcomeVariable = itemResult?.FindElementsByElementAndAttributeValue("outcomeVariable", "identifier", "SCORE").FirstOrDefault();
+
+                return double.TryParse(outcomeVariable?.Value, out double score) ? Math.Max(0, score)/maxScore : 0;
             }
-
-            var qtiScoringEngine = new ScoringEngine();
-            var scoredAssessmentResult = qtiScoringEngine.ProcessResponses(new ScoringContext
-            {
-                AssessmentItems = [assessmentItem],
-                AssessmentResults = [assessmentResults],
-            }).FirstOrDefault();
-            var itemResult = scoredAssessmentResult.FindElementsByElementAndAttributeValue("itemResult", "identifier", "item").FirstOrDefault();
-            var outcomeVariable = itemResult?.FindElementsByElementAndAttributeValue("outcomeVariable", "identifier", "SCORE").FirstOrDefault();
-
-            return double.TryParse(outcomeVariable?.Value, out double score) ? Math.Max(0, score)/maxScore : 0;
+            catch (Exception e) {
+                Console.WriteLine(e);
+                return 0;
+            }
         }
     }
 }
