@@ -135,18 +135,30 @@ namespace Citolab.QTI.ScoringEngine
         }
 
         [UnmanagedCallersOnly]
-        public static unsafe double Score(char* assessmentItem, char* assessmentResults)
+        public static unsafe double Score(char* assessmentItemStr, char* assessmentResultsStr)
         {
+            var assessmentItem = XDocument.Parse(Marshal.PtrToStringUTF8(new IntPtr(assessmentItemStr)));
+            var assessmentResults = XDocument.Parse(Marshal.PtrToStringUTF8(new IntPtr(assessmentResultsStr)));
+
+            var logger = new NullLogger<ScoringEngine>();
+            var expressionFactory = new ExpressionFactory(null, logger);
+            double maxScore = 1;
+            if (new AssessmentItem(logger, assessmentItem, expressionFactory).OutcomeDeclarations.TryGetValue("MAXSCORE", out OutcomeDeclaration maxScoreOutcome)) {
+              if (!double.TryParse(maxScoreOutcome.DefaultValue.ToString(), out maxScore)) {
+                maxScore = 1;
+              }
+            }
+
             var qtiScoringEngine = new ScoringEngine();
             var scoredAssessmentResult = qtiScoringEngine.ProcessResponses(new ScoringContext
             {
-                AssessmentItems = [XDocument.Parse(Marshal.PtrToStringUTF8(new IntPtr(assessmentItem)))],
-                AssessmentmentResults = [XDocument.Parse(Marshal.PtrToStringUTF8(new IntPtr(assessmentResults)))],
+                AssessmentItems = [assessmentItem],
+                AssessmentResults = [assessmentResults],
             }).FirstOrDefault();
             var itemResult = scoredAssessmentResult.FindElementsByElementAndAttributeValue("itemResult", "identifier", "item").FirstOrDefault();
             var outcomeVariable = itemResult?.FindElementsByElementAndAttributeValue("outcomeVariable", "identifier", "SCORE").FirstOrDefault();
-            double score = 0;
-            return Double.TryParse(outcomeVariable?.Value, out score) ? score : -1;
+
+            return double.TryParse(outcomeVariable?.Value, out double score) ? Math.Max(0, score)/maxScore : 0;
         }
     }
 }
