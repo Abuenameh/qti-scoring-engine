@@ -11,9 +11,38 @@ using Microsoft.Extensions.Logging;
 using Citolab.QTI.ScoringEngine.ResponseProcessing;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
+using Jint;
+using Jint.Native;
 
 namespace Citolab.QTI.ScoringEngine
 {
+    class JsConsole
+    {
+        public void assert(params JsValue[] args)
+        {
+        }
+
+        public void error(params JsValue[] args)
+        {
+            Console.WriteLine("[Error] " + args[0]);
+        }
+
+        public void warn(params JsValue[] args)
+        {
+            Console.WriteLine("[Warn] " + args[0]);
+        }
+
+        public void info(params JsValue[] args)
+        {
+            Console.WriteLine("[Info] " + args[0]);
+        }
+
+        public void log(params JsValue[] args)
+        {
+            Console.WriteLine(args[0]);
+        }
+    }
+
     public class ConsoleLogger<T> : ILogger<T>
     {
         public static readonly ConsoleLogger<T> Instance = new ConsoleLogger<T>();
@@ -58,6 +87,7 @@ namespace Citolab.QTI.ScoringEngine
 
     public class ScoringEngine : IScoringEngine
     {
+        private static Engine Engine;
         private IExpressionFactory _expressionFactory;
         public List<XDocument> ProcessOutcomes(IOutcomeProcessingContext ctx)
         {
@@ -176,10 +206,24 @@ namespace Citolab.QTI.ScoringEngine
             return assessmentResult;
         }
 
+        public static Engine GetEngine()
+        {
+            return Engine;
+        }
+
         [UnmanagedCallersOnly]
         public static unsafe double Score(char* assessmentItemStr, char* assessmentResultsStr)
         {
             try {
+                if (Engine == null) {
+                    Engine = new Engine(options =>
+                        {
+                            options.EnableModules("/home/dev/.local/lib");
+                        })
+                        .SetValue("console", new JsConsole());
+                    Engine.Modules.Import("./compute-engine.min.js");
+                }
+
                 var assessmentItem = XDocument.Parse(Marshal.PtrToStringUTF8(new IntPtr(assessmentItemStr)));
                 var assessmentResults = XDocument.Parse(Marshal.PtrToStringUTF8(new IntPtr(assessmentResultsStr)));
 
