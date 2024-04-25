@@ -17,6 +17,12 @@ using Citolab.QTI.ScoringEngine.ResponseProcessing.CustomOperators;
 
 namespace Citolab.QTI.ScoringEngine
 {
+    public struct ScoreResult
+    {
+        public double score;
+        public int partiallyCorrect;
+    }
+
     class JsConsole
     {
         public void assert(params JsValue[] args)
@@ -218,7 +224,8 @@ namespace Citolab.QTI.ScoringEngine
         }
 
         [UnmanagedCallersOnly]
-        public static unsafe double Score(char* assessmentItemStr, char* assessmentResultsStr)
+        [DNNE.C99DeclCode("struct ScoreResult{double score; int partiallyCorrect;};")]
+        public static unsafe int Score(char* assessmentItemStr, char* assessmentResultsStr, [DNNE.C99Type("struct ScoreResult*")] ScoreResult* result)
         {
             try {
                 if (Engine == null) {
@@ -243,18 +250,39 @@ namespace Citolab.QTI.ScoringEngine
                     Logger = logger,
                 }).FirstOrDefault();
                 double maxScore = 1;
-                if (qtiScoringEngine.assessmentItems.FirstOrDefault().OutcomeDeclarations.TryGetValue("MAXSCORE", out OutcomeDeclaration maxScoreOutcome)) {
-                  if (!double.TryParse(maxScoreOutcome.DefaultValue.ToString(), out maxScore)) {
-                    maxScore = 1;
-                  }
+                if (qtiScoringEngine.assessmentItems.FirstOrDefault().OutcomeDeclarations.TryGetValue("MAXSCORE", out OutcomeDeclaration maxScoreOutcome))
+                {
+                    if (!double.TryParse(maxScoreOutcome.DefaultValue.ToString(), out maxScore))
+                    {
+                        maxScore = 1;
+                    }
                 }
                 var itemResult = scoredAssessmentResult.FindElementsByElementAndAttributeValue("itemResult", "identifier", "item").FirstOrDefault();
                 var outcomeVariable = itemResult?.FindElementsByElementAndAttributeValue("outcomeVariable", "identifier", "SCORE").FirstOrDefault();
+                var partiallyCorrectVariable = itemResult?.FindElementsByElementAndAttributeValue("outcomeVariable", "identifier", "PARTIALLY_CORRECT").FirstOrDefault();
 
-                return double.TryParse(outcomeVariable?.Value, out double score) ? Math.Max(0, score)/maxScore : 0;
+                if (double.TryParse(outcomeVariable?.Value, out double score))
+                {
+                    result->score = Math.Max(0, score)/maxScore;
+                }
+                else
+                {
+                    result->score = 0;
+                }
+                if (int.TryParse(partiallyCorrectVariable?.Value, out int partiallyCorrect))
+                {
+                    result->partiallyCorrect = partiallyCorrect;
+                }
+                else
+                {
+                    result->partiallyCorrect = 0;
+                }
+                return 1;
             }
             catch (Exception e) {
                 Console.WriteLine(e);
+                result->score = 0;
+                result->partiallyCorrect = 0;
                 return 0;
             }
         }
