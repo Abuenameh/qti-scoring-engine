@@ -13,6 +13,7 @@ using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using Jint;
 using Jint.Native;
+using Citolab.QTI.ScoringEngine.ResponseProcessing.CustomOperators;
 
 namespace Citolab.QTI.ScoringEngine
 {
@@ -88,6 +89,10 @@ namespace Citolab.QTI.ScoringEngine
     public class ScoringEngine : IScoringEngine
     {
         private static Engine Engine;
+        internal static Dictionary<string, ICustomOperator> CustomOperators = new()
+            {
+                { "abu:MathEqual", new MathEqual() }
+            };
         private IExpressionFactory _expressionFactory;
         public List<XDocument> ProcessOutcomes(IOutcomeProcessingContext ctx)
         {
@@ -228,7 +233,7 @@ namespace Citolab.QTI.ScoringEngine
                 var assessmentResults = XDocument.Parse(Marshal.PtrToStringUTF8(new IntPtr(assessmentResultsStr)));
 
                 var logger = new NullLogger<ScoringEngine>();
-                var expressionFactory = new ExpressionFactory(null, logger);
+                var expressionFactory = new ExpressionFactory(CustomOperators, logger);
                 double maxScore = 1;
                 if (new AssessmentItem(logger, assessmentItem, expressionFactory).OutcomeDeclarations.TryGetValue("MAXSCORE", out OutcomeDeclaration maxScoreOutcome)) {
                   if (!double.TryParse(maxScoreOutcome.DefaultValue.ToString(), out maxScore)) {
@@ -241,6 +246,7 @@ namespace Citolab.QTI.ScoringEngine
                 {
                     AssessmentItems = [assessmentItem],
                     AssessmentResults = [assessmentResults],
+                    CustomOperators = CustomOperators,
                 }).FirstOrDefault();
                 var itemResult = scoredAssessmentResult.FindElementsByElementAndAttributeValue("itemResult", "identifier", "item").FirstOrDefault();
                 var outcomeVariable = itemResult?.FindElementsByElementAndAttributeValue("outcomeVariable", "identifier", "SCORE").FirstOrDefault();
