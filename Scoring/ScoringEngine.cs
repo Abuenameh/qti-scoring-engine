@@ -89,10 +89,11 @@ namespace Citolab.QTI.ScoringEngine
     public class ScoringEngine : IScoringEngine
     {
         private static Engine Engine;
-        internal static Dictionary<string, ICustomOperator> CustomOperators = new()
+        private static Dictionary<string, ICustomOperator> CustomOperators = new()
             {
                 { "abu:MathEqual", new MathEqual() }
             };
+        private List<AssessmentItem> assessmentItems;
         private IExpressionFactory _expressionFactory;
         public List<XDocument> ProcessOutcomes(IOutcomeProcessingContext ctx)
         {
@@ -160,7 +161,7 @@ namespace Citolab.QTI.ScoringEngine
             {
                 _expressionFactory = new ExpressionFactory(ctx.CustomOperators, ctx.Logger);
             }
-            var assessmentItems = ctx.AssessmentItems
+            assessmentItems = ctx.AssessmentItems
                 .Select(assessmentItemDoc => new AssessmentItem(ctx.Logger, assessmentItemDoc, _expressionFactory))
                 .ToList();
             if (ctx.ProcessParallel == true)
@@ -233,21 +234,20 @@ namespace Citolab.QTI.ScoringEngine
                 var assessmentResults = XDocument.Parse(Marshal.PtrToStringUTF8(new IntPtr(assessmentResultsStr)));
 
                 var logger = new NullLogger<ScoringEngine>();
-                var expressionFactory = new ExpressionFactory(CustomOperators, logger);
-                double maxScore = 1;
-                if (new AssessmentItem(logger, assessmentItem, expressionFactory).OutcomeDeclarations.TryGetValue("MAXSCORE", out OutcomeDeclaration maxScoreOutcome)) {
-                  if (!double.TryParse(maxScoreOutcome.DefaultValue.ToString(), out maxScore)) {
-                    maxScore = 1;
-                  }
-                }
-
                 var qtiScoringEngine = new ScoringEngine();
                 var scoredAssessmentResult = qtiScoringEngine.ProcessResponses(new ScoringContext
                 {
                     AssessmentItems = [assessmentItem],
                     AssessmentResults = [assessmentResults],
                     CustomOperators = CustomOperators,
+                    Logger = logger,
                 }).FirstOrDefault();
+                double maxScore = 1;
+                if (qtiScoringEngine.assessmentItems.FirstOrDefault().OutcomeDeclarations.TryGetValue("MAXSCORE", out OutcomeDeclaration maxScoreOutcome)) {
+                  if (!double.TryParse(maxScoreOutcome.DefaultValue.ToString(), out maxScore)) {
+                    maxScore = 1;
+                  }
+                }
                 var itemResult = scoredAssessmentResult.FindElementsByElementAndAttributeValue("itemResult", "identifier", "item").FirstOrDefault();
                 var outcomeVariable = itemResult?.FindElementsByElementAndAttributeValue("outcomeVariable", "identifier", "SCORE").FirstOrDefault();
 
