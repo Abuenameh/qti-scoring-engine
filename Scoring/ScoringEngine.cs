@@ -14,6 +14,48 @@ using System.Runtime.InteropServices;
 
 namespace Citolab.QTI.ScoringEngine
 {
+    public class ConsoleLogger<T> : ILogger<T>
+    {
+        public static readonly ConsoleLogger<T> Instance = new ConsoleLogger<T>();
+
+        /// <inheritdoc />
+        public IDisposable BeginScope<TState>(TState state)
+        {
+            return ConsoleDisposable.Instance;
+        }
+
+        /// <inheritdoc />
+        /// <remarks>
+        /// This method ignores the parameters and does nothing.
+        /// </remarks>
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception exception,
+            Func<TState, Exception, string> formatter)
+        {
+            Console.WriteLine(formatter(state,exception));
+        }
+
+        /// <inheritdoc />
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            return true;
+        }
+
+        private class ConsoleDisposable : IDisposable
+        {
+            public static readonly ConsoleDisposable Instance = new ConsoleDisposable();
+
+            public void Dispose()
+            {
+                // intentionally does nothing
+            }
+        }
+    }
+
+
     public class ScoringEngine : IScoringEngine
     {
         private IExpressionFactory _expressionFactory;
