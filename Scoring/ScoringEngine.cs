@@ -229,9 +229,10 @@ namespace Citolab.QTI.ScoringEngine
         {
             try {
                 if (Engine == null) {
+                    var userName = Environment.UserName;
                     Engine = new Engine(options =>
                         {
-                            options.EnableModules("/home/dev/.local/lib");
+                            options.EnableModules((userName == "root") ? "/usr/lib" : $"/home/{userName}/.local/lib");
                         })
                         .SetValue("console", new JsConsole());
                     Engine.Modules.Import("./compute-engine.min.js");
