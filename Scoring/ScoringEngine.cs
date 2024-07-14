@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using Jint;
 using Jint.Native;
 using Citolab.QTI.ScoringEngine.ResponseProcessing.CustomOperators;
+using Citolab.QTI.ScoringEngine.Expressions.ConditionExpressions;
 
 namespace Citolab.QTI.ScoringEngine
 {
@@ -223,7 +224,7 @@ namespace Citolab.QTI.ScoringEngine
             return Engine;
         }
 
-        [UnmanagedCallersOnly]
+        [UnmanagedCallersOnly(EntryPoint = "Score")]
         [DNNE.C99DeclCode("struct ScoreResult{double score; int partiallyCorrect;};")]
         public static unsafe int Score(char* assessmentItemStr, char* assessmentResultsStr, [DNNE.C99Type("struct ScoreResult*")] ScoreResult* result)
         {

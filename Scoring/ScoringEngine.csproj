@@ -25,6 +25,10 @@
 		<DnneNativeBinaryName>libScoringEngine</DnneNativeBinaryName>
 		<DnneCompilerCommand>g++</DnneCompilerCommand>
     <OutputPath>../../build/dotnet</OutputPath>
+    <PublishAot>true</PublishAot>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+    <AssemblyName>libScoringEngine</AssemblyName>
+    <TrimMode>partial</TrimMode>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -39,6 +43,7 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
 		<PackageReference Include="DNNE" Version="2.*" />
   	<PackageReference Include="Jint" Version="3.1.0" />
+    <TrimmerRootAssembly Include="Jint" />
 	</ItemGroup>
 
 	<ItemGroup>
