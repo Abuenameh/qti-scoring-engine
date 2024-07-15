@@ -1,6 +1,7 @@
 ﻿using Citolab.QTI.ScoringEngine.Model;
 using Citolab.QTI.ScoringEngine.Interfaces;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
@@ -231,12 +232,20 @@ namespace Citolab.QTI.ScoringEngine
             try {
                 if (Engine == null) {
                     var userName = Environment.UserName;
+                    var moduleDir = (userName == "root") ? "/usr/lib" : $"/home/{userName}/.local/lib";
                     Engine = new Engine(options =>
                         {
-                            options.EnableModules((userName == "root") ? "/usr/lib" : $"/home/{userName}/.local/lib");
+                            options.EnableModules(moduleDir);
                         })
                         .SetValue("console", new JsConsole());
                     Engine.Modules.Import("./compute-engine.min.js");
+                    StreamReader streamReader = new($"{moduleDir}/memoize.js");
+                    string memoize = streamReader.ReadToEnd();
+                    streamReader.Close();
+                    Engine.Execute(memoize);
+                    Engine.Execute("const ce = new ComputeEngine.ComputeEngine()");
+                    Engine.Execute("const isEqual_ = (a, b) => ce.parse(a).isEqual(ce.parse(b))");
+                    Engine.Execute("const isEqual = memoize(isEqual_, { cacheKey: arguments_ => arguments_.join(',') })");
                 }
 
                 var assessmentItem = XDocument.Parse(Marshal.PtrToStringUTF8(new IntPtr(assessmentItemStr)));

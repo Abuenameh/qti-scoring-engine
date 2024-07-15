@@ -24,7 +24,6 @@ namespace Citolab.QTI.ScoringEngine.ResponseProcessing.CustomOperators
             }
 
             var engine = ScoringEngine.GetEngine();
-            engine.Execute("var ce = new ComputeEngine.ComputeEngine()");
             if (values[0].Identifier?.Equals("setup") ?? false)
             {
                 engine.Execute(values[0].Value);
@@ -41,7 +40,7 @@ namespace Citolab.QTI.ScoringEngine.ResponseProcessing.CustomOperators
             }
 
             var lhs = values[0].Value.Replace("\\", "\\\\");
-            var equal = values.ToList().Skip(1).Select(rhs => engine.Evaluate($"ce.parse('{lhs}').isEqual(ce.parse('{rhs.Value.Replace("\\", "\\\\")}'))")).Any(x => x.AsBoolean());
+            var equal = values.ToList().Skip(1).Select(rhs => engine.Evaluate($"isEqual('{lhs}', '{rhs.Value.Replace("\\", "\\\\")}')")).Any(x => x.AsBoolean());
 
             return new BaseValue
             {
